@@ -7,3 +7,7 @@ next-env.d.ts
 
 # Deploy artifact
 offerhost-site.zip
+
+# Server secrets — never commit (lives outside public_html on the server)
+offerhost-config.php
+*.local.php

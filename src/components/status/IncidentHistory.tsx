@@ -1,6 +1,9 @@
+"use client";
+
 import { CalendarClock, CheckCircle2, History } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
-import { findComponent, incidents, maintenance } from "@/lib/status";
+import { findComponent, type ComponentGroup } from "@/lib/status";
+import { useStatusData } from "./StatusData";
 import { StatusPill } from "./StatusPill";
 
 const fmt = new Intl.DateTimeFormat("en-GB", {
@@ -13,7 +16,7 @@ const fmt = new Intl.DateTimeFormat("en-GB", {
   timeZoneName: "short",
 });
 
-const names = (ids: string[]) => ids.map((id) => findComponent(id)?.name ?? id).join(", ");
+const names = (ids: string[], groups: ComponentGroup[]) => ids.map((id) => findComponent(id, groups)?.name ?? id).join(", ");
 
 function Empty({ icon: Icon, text }: { icon: typeof CheckCircle2; text: string }) {
   return (
@@ -25,6 +28,7 @@ function Empty({ icon: Icon, text }: { icon: typeof CheckCircle2; text: string }
 }
 
 export function MaintenanceList() {
+  const { maintenance, groups } = useStatusData();
   return (
     <Reveal>
       <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
@@ -45,7 +49,7 @@ export function MaintenanceList() {
                 {fmt.format(new Date(m.startsAt))} → {fmt.format(new Date(m.endsAt))}
               </p>
               <p className="mt-3 text-sm text-fg/85">{m.description}</p>
-              <p className="mt-3 text-[12px] text-subtle">Affects: {names(m.components)}</p>
+              <p className="mt-3 text-[12px] text-subtle">Affects: {names(m.components, groups)}</p>
             </article>
           ))
         )}
@@ -55,6 +59,7 @@ export function MaintenanceList() {
 }
 
 export function IncidentList() {
+  const { incidents, groups } = useStatusData();
   const sorted = [...incidents].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   return (
     <Reveal>
@@ -72,10 +77,10 @@ export function IncidentList() {
                 <h3 className="font-medium text-fg">{inc.title}</h3>
                 <StatusPill status={inc.resolvedAt ? "operational" : inc.impact} />
               </div>
-              <p className="mt-1 text-[12px] text-subtle">Affects: {names(inc.components)}</p>
+              <p className="mt-1 text-[12px] text-subtle">Affects: {names(inc.components, groups)}</p>
               <ol className="mt-4 space-y-3 border-l border-line pl-4">
                 {inc.updates.map((u) => (
-                  <li key={u.at} className="relative">
+                  <li key={`${u.at}-${u.status}`} className="relative">
                     <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-brand-400" />
                     <p className="text-sm text-fg/90">
                       <span className="font-semibold capitalize text-white">{u.status}</span> — {u.message}

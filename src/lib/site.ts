@@ -19,6 +19,16 @@ export const brand = {
 
 export type NavItem = { label: string; href: string };
 
+/**
+ * HostBill client area (customers: sign-in, sign-up, orders, invoices, servers).
+ * TODO(offerhost): confirm these URLs match your HostBill install.
+ */
+export const clientArea = {
+  home: "/clients/",
+  login: "/clients/?cmd=login",
+  register: "/clients/?cmd=signup",
+};
+
 export const mainNav: NavItem[] = [
   { label: "Dedicated Servers", href: "/#servers" },
   { label: "ASN & IP", href: "/#asn" },
@@ -52,6 +62,8 @@ export type ServerPlan = {
   badge?: string;
   /** Location id from `locations` below */
   location: string;
+  /** Order link (e.g. HostBill cart). Without one, "Configure" opens the contact form. */
+  orderUrl?: string | null;
 };
 
 export const serverPlans: ServerPlan[] = [

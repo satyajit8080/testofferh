@@ -3,12 +3,13 @@ import Link from "next/link";
 import { ArrowRight, LifeBuoy } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { ComponentGroupCard } from "@/components/status/ComponentGroupCard";
+import { ComponentList } from "@/components/status/ComponentList";
+import { StatusDataProvider } from "@/components/status/StatusData";
 import { IncidentList, MaintenanceList } from "@/components/status/IncidentHistory";
 import { StatusHero } from "@/components/status/StatusHero";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
-import { componentGroups, statusMeta, type Status } from "@/lib/status";
+import { statusMeta, type Status } from "@/lib/status";
 
 const title = "System Status | Offerhost AS208220";
 const description =
@@ -22,16 +23,6 @@ export const metadata: Metadata = {
   twitter: { title, description },
 };
 
-// Build time (UTC) — the page is static, so this is when the status was last published.
-const updatedAt = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "UTC",
-  timeZoneName: "short",
-}).format(new Date());
-
 const legend: Status[] = ["operational", "degraded", "partial_outage", "major_outage", "maintenance"];
 
 export default function StatusPage() {
@@ -39,7 +30,9 @@ export default function StatusPage() {
     <>
       <Header />
       <main id="main">
-        <StatusHero updatedAt={updatedAt} />
+        {/* Build time is the fallback "last updated"; live data replaces it when the API answers. */}
+        <StatusDataProvider builtAt={new Date().toISOString()}>
+        <StatusHero />
 
         <Container className="pb-24">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -59,9 +52,7 @@ export default function StatusPage() {
                   </li>
                 </ul>
               </Reveal>
-              {componentGroups.map((g) => (
-                <ComponentGroupCard key={g.id} group={g} />
-              ))}
+              <ComponentList />
             </div>
 
             <aside className="space-y-10 lg:sticky lg:top-32 lg:self-start">
@@ -84,6 +75,7 @@ export default function StatusPage() {
             </aside>
           </div>
         </Container>
+        </StatusDataProvider>
       </main>
       <Footer />
     </>

@@ -3,18 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, ShieldCheck, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { SearchDialog } from "@/components/layout/SearchDialog";
-import { brand, mainNav } from "@/lib/site";
+import { brand, clientArea, mainNav } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  // Hint cookie set by the admin API at sign-in. It only shows a link; access is checked server-side.
+  const [isStaff, setIsStaff] = useState(false);
+
+  useEffect(() => {
+    setIsStaff(/(?:^|;\s*)oh_staff=1(?:;|$)/.test(document.cookie));
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -69,6 +75,12 @@ export function Header() {
               <Link href="/status/" className="text-fg/70 transition-colors hover:text-white">
                 System Status →
               </Link>
+              {isStaff && (
+                <Link href="/admin/" className="flex items-center gap-1 text-brand-400 transition-colors hover:text-glow">
+                  <ShieldCheck className="h-3 w-3" />
+                  Admin
+                </Link>
+              )}
             </span>
           </Container>
         </div>
@@ -100,14 +112,14 @@ export function Header() {
             >
               <Search className="h-[18px] w-[18px]" />
             </button>
-            <Link
-              href="#"
+            <a
+              href={clientArea.login}
               className="hidden px-3 text-[14px] text-fg/80 transition-colors hover:text-white sm:inline"
             >
               Login
-            </Link>
+            </a>
             <span className="hidden sm:inline-flex">
-              <Button href="/#servers" size="sm">
+              <Button href={clientArea.register} size="sm" native>
                 Get Started
               </Button>
             </span>
@@ -153,13 +165,19 @@ export function Header() {
                   </motion.div>
                 ))}
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Button href="/#" variant="secondary" onClick={() => setMenuOpen(false)}>
+                  <Button href={clientArea.login} variant="secondary" native>
                     Login
                   </Button>
-                  <Button href="/#servers" onClick={() => setMenuOpen(false)}>
+                  <Button href={clientArea.register} native>
                     Get Started
                   </Button>
                 </div>
+                {isStaff && (
+                  <Link href="/admin/" className="mt-3 flex items-center justify-center gap-2 rounded-[6px] border border-line py-2.5 text-sm text-fg/80">
+                    <ShieldCheck className="h-4 w-4 text-brand-400" />
+                    Admin panel
+                  </Link>
+                )}
                 <p className="mt-4 font-mono text-[11px] tracking-wider text-subtle">
                   {brand.asn} · {brand.rir}
                 </p>

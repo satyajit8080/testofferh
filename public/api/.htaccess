@@ -1,0 +1,7 @@
+# API responses are per-user / dynamic: never cache at the browser or Cloudflare edge.
+<IfModule mod_headers.c>
+  Header always set Cache-Control "no-store, private"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+Options -Indexes

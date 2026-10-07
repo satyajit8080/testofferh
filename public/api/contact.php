@@ -1,33 +1,17 @@
 <?php
 /**
- * Offerhost contact form handler — receives POSTs from /contact/ and emails them.
+ * Offerhost contact form handler — receives POSTs from /contact/.
  *
- * Deployed as /api/contact.php (copied from public/ into out/ by `next build`).
+ * Each message is saved to the database (Admin → Messages) when the database is configured,
+ * and emailed to `mail.contact_to` when that is set. Settings live in the private config file
+ * outside public_html (see server/offerhost-config.example.php).
+ *
  * Responds with JSON: { ok: true } or { ok: false, error: "...", fields?: { name: "..." } }.
  */
 
 declare(strict_types=1);
 
-// ---------------------------------------------------------------------------
-// Configuration — TODO(offerhost): fill these in before deploying.
-// ---------------------------------------------------------------------------
-
-/** Where form submissions are delivered. Leave empty and the form returns "not configured". */
-const RECIPIENT = ''; // TODO e.g. 'sales@your-domain'
-
-/**
- * Sender address for the notification email. Must be a mailbox on a domain this
- * server is allowed to send for (SPF/DKIM), otherwise mail may land in spam.
- */
-const FROM_ADDRESS = ''; // TODO e.g. 'no-reply@your-domain'
-const FROM_NAME = 'Offerhost Website';
-
-/** Browsers posting from any other origin are rejected. */
-const ALLOWED_HOSTS = ['offerhost.com', 'www.offerhost.com'];
-
-/** Max submissions per IP per window. */
-const RATE_LIMIT = 5;
-const RATE_WINDOW = 3600; // seconds
+require __DIR__ . '/_lib/bootstrap.php';
 
 const TOPICS = [
     'sales' => 'Sales / Dedicated Servers',
@@ -40,95 +24,21 @@ const TOPICS = [
 
 const MAX = ['name' => 100, 'email' => 200, 'company' => 120, 'message' => 5000];
 
-// ---------------------------------------------------------------------------
+guard_request(['POST'], false);
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
-header('X-Content-Type-Options: nosniff');
-
-function respond(int $status, array $body): void
-{
-    http_response_code($status);
-    echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-/** Collapse to a single line so user input can never inject mail headers. */
-function one_line(string $s): string
-{
-    return trim(preg_replace('/[\r\n\t\x00-\x1F\x7F]+/u', ' ', $s) ?? '');
-}
-
-function field(string $key): string
-{
-    $v = $_POST[$key] ?? '';
-    return is_string($v) ? $v : '';
-}
-
-function client_ip(): string
-{
-    // The site sits behind Cloudflare, which passes the visitor IP in this header.
-    $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
-    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
-}
-
-/** File-based sliding-window limiter. Returns false when the IP is over the limit. */
-function rate_limit_ok(string $ip): bool
-{
-    $dir = rtrim(sys_get_temp_dir(), '/') . '/offerhost-contact';
-    if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
-        return true; // Fail open rather than block real customers if tmp isn't writable.
-    }
-    $file = $dir . '/' . hash('sha256', $ip . '|' . __FILE__) . '.json';
-    $fh = @fopen($file, 'c+');
-    if (!$fh) {
-        return true;
-    }
-    flock($fh, LOCK_EX);
-    $now = time();
-    $hits = json_decode((string) stream_get_contents($fh), true);
-    $hits = array_values(array_filter(is_array($hits) ? $hits : [], fn ($t) => is_int($t) && $t > $now - RATE_WINDOW));
-    $allowed = count($hits) < RATE_LIMIT;
-    if ($allowed) {
-        $hits[] = $now;
-    }
-    ftruncate($fh, 0);
-    rewind($fh);
-    fwrite($fh, json_encode($hits));
-    flock($fh, LOCK_UN);
-    fclose($fh);
-    return $allowed;
-}
-
-// --- Method & origin -------------------------------------------------------
-
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    header('Allow: POST');
-    respond(405, ['ok' => false, 'error' => 'Method not allowed.']);
-}
-
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if ($origin !== '') {
-    $host = strtolower((string) parse_url($origin, PHP_URL_HOST));
-    if (!in_array($host, ALLOWED_HOSTS, true)) {
-        respond(403, ['ok' => false, 'error' => 'Forbidden.']);
-    }
-}
-
-// --- Honeypot: pretend success so bots don't retry --------------------------
-
-if (field('website') !== '') {
+// Honeypot: pretend success so bots don't retry.
+if (str_in('website', 200) !== '') {
     respond(200, ['ok' => true]);
 }
 
 // --- Validation (mirrors the client-side rules) -----------------------------
 
-$name = one_line(field('name'));
-$email = one_line(field('email'));
-$company = one_line(field('company'));
-$topic = field('topic');
-$plan = one_line(field('plan'));
-$message = trim(str_replace("\r\n", "\n", field('message')));
+$name = one_line(str_in('name', 1000));
+$email = one_line(str_in('email', 1000));
+$company = one_line(str_in('company', 1000));
+$topic = str_in('topic', 20);
+$plan = one_line(str_in('plan', 100));
+$message = str_in('message', 20000);
 
 $errors = [];
 if ($name === '') {
@@ -157,55 +67,55 @@ if (mb_strlen($message) < 10) {
 }
 
 if ($errors) {
-    respond(422, ['ok' => false, 'error' => 'Please check the highlighted fields.', 'fields' => $errors]);
+    fail(422, 'Please check the highlighted fields.', $errors);
 }
 
 // --- Rate limit & configuration ---------------------------------------------
 
 $ip = client_ip();
-if (!rate_limit_ok($ip)) {
-    respond(429, ['ok' => false, 'error' => 'Too many messages from your network. Please try again later.']);
+if (!rate_limit("contact:ip:$ip", 5, 3600)) {
+    fail(429, 'Too many messages from your network. Please try again later.');
 }
 
-if (RECIPIENT === '' || FROM_ADDRESS === '') {
-    respond(503, ['ok' => false, 'error' => 'The contact form is not configured yet. Please try again later.']);
+$recipient = (string) config('mail.contact_to', '');
+if (!db_configured() && $recipient === '') {
+    fail(503, 'The contact form is not configured yet. Please try again later.');
 }
 
-// --- Send -------------------------------------------------------------------
+// --- Store & send -----------------------------------------------------------
 
-$topicLabel = TOPICS[$topic];
-$subject = mb_encode_mimeheader("[Offerhost] {$topicLabel} — {$name}", 'UTF-8', 'B', "\r\n");
+$stored = false;
+if (db_configured()) {
+    q(
+        'INSERT INTO contact_messages (name, email, company, topic, plan, message, ip, user_agent, created_at) VALUES (?,?,?,?,?,?,?,?,?)',
+        [$name, $email, $company, $topic, $plan, $message, $ip, mb_substr(user_agent(), 0, 300), now_utc()]
+    );
+    $stored = true;
+}
 
-$body = implode("\n", [
-    "New message from the Offerhost contact form",
-    str_repeat('-', 44),
-    "Name:    {$name}",
-    "Email:   {$email}",
-    "Company: " . ($company !== '' ? $company : '—'),
-    "Topic:   {$topicLabel}",
-    "Plan:    " . ($plan !== '' ? $plan : '—'),
-    '',
-    $message,
-    '',
-    str_repeat('-', 44),
-    'IP:         ' . $ip,
-    'User agent: ' . one_line(substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 300)),
-    'Sent:       ' . gmdate('Y-m-d H:i:s') . ' UTC',
-]);
+$sent = false;
+if ($recipient !== '') {
+    $topicLabel = TOPICS[$topic];
+    $sent = send_mail($recipient, "[Offerhost] {$topicLabel} — {$name}", implode("\n", [
+        'New message from the Offerhost contact form',
+        str_repeat('-', 44),
+        "Name:    {$name}",
+        "Email:   {$email}",
+        'Company: ' . ($company !== '' ? $company : '—'),
+        "Topic:   {$topicLabel}",
+        'Plan:    ' . ($plan !== '' ? $plan : '—'),
+        '',
+        $message,
+        '',
+        str_repeat('-', 44),
+        'IP:         ' . $ip,
+        'User agent: ' . user_agent(),
+        'Sent:       ' . gmdate('Y-m-d H:i:s') . ' UTC',
+    ]), $email);
+}
 
-$headers = implode("\r\n", [
-    'From: ' . mb_encode_mimeheader(FROM_NAME, 'UTF-8') . ' <' . FROM_ADDRESS . '>',
-    'Reply-To: ' . $email,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: 8bit',
-]);
-
-$sent = @mail(RECIPIENT, $subject, $body, $headers, '-f' . FROM_ADDRESS);
-
-if (!$sent) {
-    error_log('[offerhost-contact] mail() failed for submission from ' . $ip);
-    respond(500, ['ok' => false, 'error' => "We couldn't send your message. Please try again in a moment."]);
+if (!$stored && !$sent) {
+    fail(500, "We couldn't send your message. Please try again in a moment.");
 }
 
 respond(200, ['ok' => true]);
