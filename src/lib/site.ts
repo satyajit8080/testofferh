@@ -30,11 +30,11 @@ export const clientArea = {
 };
 
 export const mainNav: NavItem[] = [
-  { label: "Dedicated Servers", href: "/#servers" },
-  { label: "ASN & IP", href: "/#asn" },
-  { label: "Network", href: "/#network" },
-  { label: "Data Centers", href: "/#locations" },
-  { label: "Company", href: "/#why" },
+  { label: "Dedicated Servers", href: "/dedicated-servers/" },
+  { label: "ASN & IP", href: "/asn-ip/" },
+  { label: "Network", href: "/network/" },
+  { label: "Data Centers", href: "/data-centers/" },
+  { label: "Company", href: "/about/" },
   { label: "Contact", href: "/contact/" },
 ];
 
@@ -151,36 +151,36 @@ export const footerColumns: { title: string; links: NavItem[] }[] = [
   {
     title: "Products",
     links: [
-      { label: "Dedicated Servers", href: "/#servers" },
-      { label: "ASN & IP", href: "/#asn" },
-      { label: "Network", href: "/#network" },
-      { label: "DDoS Protection", href: "/#network" },
+      { label: "Dedicated Servers", href: "/dedicated-servers/" },
+      { label: "ASN & IP", href: "/asn-ip/" },
+      { label: "Network", href: "/network/" },
+      { label: "DDoS Protection", href: "/network/" },
     ],
   },
   {
     title: "Infrastructure",
     links: [
-      { label: "Netherlands", href: "/#locations" },
-      { label: "Germany", href: "/#locations" },
-      { label: "United Kingdom", href: "/#locations" },
-      { label: "United States", href: "/#locations" },
+      { label: "Netherlands", href: "/data-centers/" },
+      { label: "Germany", href: "/data-centers/" },
+      { label: "United Kingdom", href: "/data-centers/" },
+      { label: "United States", href: "/data-centers/" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About Offerhost", href: "/#why" },
+      { label: "About Offerhost", href: "/about/" },
       { label: "Contact", href: "/contact/" },
-      { label: "Network", href: "/#network" },
+      { label: "Client Area", href: "/clients/" },
       { label: "Status", href: "/status/" },
     ],
   },
   {
     title: "Network",
     links: [
-      { label: brand.asn, href: "/#asn" },
-      { label: brand.rir, href: "/#asn" },
-      { label: brand.networkTitle, href: "/#network" },
+      { label: brand.asn, href: "/asn-ip/" },
+      { label: brand.rir, href: "/asn-ip/" },
+      { label: brand.networkTitle, href: "/network/" },
     ],
   },
 ];

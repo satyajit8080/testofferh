@@ -21,13 +21,17 @@ export function Footer() {
             <nav key={col.title} aria-label={col.title}>
               <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{col.title}</h2>
               <ul className="mt-4 space-y-2.5">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    <Link href={l.href} className="text-sm text-fg/80 transition-colors hover:text-white">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
+                {col.links.map((l) => {
+                  // The HostBill client area is outside this app: plain link, no prefetch.
+                  const Anchor = l.href.startsWith("/clients/") ? "a" : Link;
+                  return (
+                    <li key={l.label}>
+                      <Anchor href={l.href} className="text-sm text-fg/80 transition-colors hover:text-white">
+                        {l.label}
+                      </Anchor>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
           ))}

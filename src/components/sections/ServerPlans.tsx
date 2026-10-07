@@ -26,7 +26,7 @@ export function ServerPlans() {
           />
           <Reveal delay={0.1}>
             <Link
-              href="#servers"
+              href="/dedicated-servers/"
               className="group inline-flex items-center gap-2 text-sm font-medium text-brand-400 transition-colors hover:text-glow"
             >
               View All Servers
