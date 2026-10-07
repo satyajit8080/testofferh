@@ -1,0 +1,13 @@
+{
+  "name": "offerhost/chat-api",
+  "description": "Backend for the Offerhost website sales chat assistant.",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "anthropic-ai/sdk": "*",
+    "guzzlehttp/guzzle": "^8.2"
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}

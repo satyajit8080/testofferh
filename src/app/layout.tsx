@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ChatWidget } from "@/components/layout/ChatWidget";
 import "./globals.css";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
@@ -50,7 +51,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ChatWidget />
+      </body>
     </html>
   );
 }

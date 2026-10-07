@@ -1,0 +1,8 @@
+# Only chat.php and the generated knowledge file are public.
+Options -Indexes
+
+<FilesMatch "^(config\.local\.php|composer\.(json|lock))$">
+  Require all denied
+</FilesMatch>
+
+RedirectMatch 404 ^/api/(vendor|storage)(/|$)

@@ -23,6 +23,25 @@ npm run dev
 | Status page components, incidents, maintenance | `src/lib/status.ts` |
 | Page sections | `src/components/` |
 
+## Sales chat assistant (24/7)
+
+A floating chat bubble (`src/components/layout/ChatWidget.tsx`) on every page answers sales and
+pre-sales questions with Claude and emails qualified leads to the sales team. Because the site is
+static, the backend is a small PHP endpoint that ships with the build: `public/api/chat.php` →
+`/api/chat.php`. Plan names, specs and prices come from `src/lib/site.ts`, exported at build time to
+`/api/chat-knowledge.json`, so the assistant always quotes what the website shows.
+
+Server setup (once, PHP 8.1+):
+
+1. In `public_html/api/`, run `composer install --no-dev` (cPanel Terminal), or run it locally in
+   `public/api/` before building so `vendor/` is included in `out/`.
+2. Copy `config.example.php` to `config.local.php` and set `ANTHROPIC_API_KEY`, `SALES_EMAIL`,
+   `MAIL_FROM` and `ALLOWED_ORIGINS` (or set them as environment variables). `.htaccess` blocks
+   public access to the config file and `vendor/`.
+
+Locally, `npm run dev` doesn't run PHP: build, then `php -S localhost:8080 -t out`, or point the
+widget at another host with `NEXT_PUBLIC_CHAT_ENDPOINT`.
+
 ## Build & deploy (cPanel)
 
 ```bash
