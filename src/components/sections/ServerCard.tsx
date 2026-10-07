@@ -168,7 +168,7 @@ export function ServerCard({ plan, index }: { plan: ServerPlan; index: number })
             <span className="text-[13px] text-muted">/ month</span>
           </p>
           <Link
-            href="/#contact"
+            href={`/contact/?plan=${plan.id}`}
             aria-label={`Configure ${plan.name}`}
             className={cn(
               "relative mt-5 flex h-11 items-center justify-center gap-2 overflow-hidden rounded-[6px] text-sm font-medium transition-colors",

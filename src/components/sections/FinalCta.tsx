@@ -25,7 +25,7 @@ export function FinalCta() {
               <Button href="#servers" size="lg" arrow className="w-full sm:w-auto">
                 Explore Dedicated Servers
               </Button>
-              <Button href="#contact" size="lg" variant="secondary" className="w-full sm:w-auto">
+              <Button href="/contact/" size="lg" variant="secondary" className="w-full sm:w-auto">
                 Talk to Our Team
               </Button>
             </div>

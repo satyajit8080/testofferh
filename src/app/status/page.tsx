@@ -74,7 +74,7 @@ export default function StatusPage() {
                   If something isn&apos;t working and it&apos;s not listed here, our infrastructure team can help.
                 </p>
                 <Link
-                  href="/#contact"
+                  href="/contact/?topic=support"
                   className="group mt-5 flex h-10 items-center justify-center gap-2 rounded-[6px] bg-brand-500 text-sm font-medium text-white transition-colors hover:bg-brand-400"
                 >
                   Contact Support

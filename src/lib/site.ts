@@ -25,6 +25,7 @@ export const mainNav: NavItem[] = [
   { label: "Network", href: "/#network" },
   { label: "Data Centers", href: "/#locations" },
   { label: "Company", href: "/#why" },
+  { label: "Contact", href: "/contact/" },
 ];
 
 export const asnInfo = {
@@ -157,7 +158,7 @@ export const footerColumns: { title: string; links: NavItem[] }[] = [
     title: "Company",
     links: [
       { label: "About Offerhost", href: "/#why" },
-      { label: "Contact", href: "/#contact" },
+      { label: "Contact", href: "/contact/" },
       { label: "Network", href: "/#network" },
       { label: "Status", href: "/status/" },
     ],
@@ -169,5 +170,65 @@ export const footerColumns: { title: string; links: NavItem[] }[] = [
       { label: brand.rir, href: "/#asn" },
       { label: brand.networkTitle, href: "/#network" },
     ],
+  },
+];
+
+/**
+ * Contact details shown on /contact/.
+ *
+ * TODO(offerhost): fill in the real values. Every field is a placeholder until then.
+ * Empty strings are HIDDEN on the page, so nothing fake is ever published.
+ * The address the form actually emails is set separately in `public/api/contact.php`.
+ */
+export const contact = {
+  /** Form handler, deployed from public/api/contact.php. */
+  formEndpoint: "/api/contact.php",
+  sales: {
+    email: "", // TODO e.g. sales@…
+    phone: "", // TODO optional, international format
+  },
+  support: {
+    email: "", // TODO e.g. support@…
+    /** Client area / ticket system URL, e.g. "/clients/" */
+    portalUrl: "", // TODO
+  },
+  abuse: {
+    email: "", // TODO abuse contact as registered for the ASN in the RIPE database
+    nocEmail: "", // TODO optional NOC / peering contact
+  },
+  company: {
+    legalName: "", // TODO optional
+    address: "", // TODO optional
+  },
+};
+
+export const contactTopics = [
+  { value: "sales", label: "Sales / Dedicated Servers" },
+  { value: "network", label: "ASN & IP / Network" },
+  { value: "support", label: "Technical Support" },
+  { value: "billing", label: "Billing" },
+  { value: "abuse", label: "Abuse Report" },
+  { value: "other", label: "Other" },
+] as const;
+
+export type ContactTopic = (typeof contactTopics)[number]["value"];
+
+/** FAQ on /contact/. Generic on purpose — edit freely, but don't promise SLAs here. */
+export const contactFaq = [
+  {
+    q: "How quickly can a server be deployed?",
+    a: "It depends on the configuration and current stock. Standard plans are prepared from ready hardware; custom builds take longer. We confirm the expected delivery time with you before you order.",
+  },
+  {
+    q: "Which payment methods do you accept?",
+    a: "The payment methods currently available are shown at checkout. If you need to pay in a different way, contact our billing team and we'll see what we can arrange.",
+  },
+  {
+    q: "Can I get a custom configuration?",
+    a: "Yes. Tell us the CPU, memory, storage, network and location you need and our team will put together a quote for a configuration that fits your workload.",
+  },
+  {
+    q: "Do servers come with IP addresses?",
+    a: `IPv4 and IPv6 addressing is available on our own network, ${brand.asn}. Let us know how many addresses you need; additional IPs are available on request and subject to RIPE NCC policy.`,
   },
 ];
