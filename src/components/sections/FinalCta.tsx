@@ -22,10 +22,10 @@ export function FinalCta() {
               Deploy powerful dedicated servers on the Offerhost global network.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button href="#servers" size="lg" arrow className="w-full sm:w-auto">
+              <Button href="/dedicated-servers/" size="lg" arrow className="w-full sm:w-auto">
                 Explore Dedicated Servers
               </Button>
-              <Button href="#contact" size="lg" variant="secondary" className="w-full sm:w-auto">
+              <Button href="/contact/" size="lg" variant="secondary" className="w-full sm:w-auto">
                 Talk to Our Team
               </Button>
             </div>

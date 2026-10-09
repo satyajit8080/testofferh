@@ -49,6 +49,8 @@ const beam: React.CSSProperties = {
 
 export function ServerCard({ plan, index }: { plan: ServerPlan; index: number }) {
   const featured = plan.featured;
+  // Order links point outside this app (HostBill), so use a plain anchor for them.
+  const Configure = plan.orderUrl ? "a" : Link;
   const reduce = useReducedMotion();
   const loc = locations.find((l) => l.id === plan.location);
 
@@ -167,8 +169,8 @@ export function ServerCard({ plan, index }: { plan: ServerPlan; index: number })
             </span>
             <span className="text-[13px] text-muted">/ month</span>
           </p>
-          <Link
-            href="/#contact"
+          <Configure
+            href={plan.orderUrl || `/contact/?plan=${plan.id}`}
             aria-label={`Configure ${plan.name}`}
             className={cn(
               "relative mt-5 flex h-11 items-center justify-center gap-2 overflow-hidden rounded-[6px] text-sm font-medium transition-colors",
@@ -184,7 +186,7 @@ export function ServerCard({ plan, index }: { plan: ServerPlan; index: number })
             />
             Configure
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </Configure>
         </div>
       </div>
     </motion.article>

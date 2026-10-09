@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ArrowUp, MessageCircle, X } from "lucide-react";
 import { brand } from "@/lib/site";
@@ -22,7 +23,7 @@ const greetingFor = (visitor: Visitor | null): Message => ({
 });
 
 const fieldClass =
-  "w-full rounded-md border border-line bg-ink-900/70 px-3 py-2 text-[14px] text-fg placeholder:text-subtle focus:border-brand-400 focus:outline-none";
+  "w-full rounded-md border border-line-strong bg-ink-950 px-3 py-2.5 text-[14px] text-white placeholder:text-subtle transition-colors focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30";
 
 const suggestions = [
   "Which server fits my workload?",
@@ -32,6 +33,7 @@ const suggestions = [
 ];
 
 export function ChatWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -126,6 +128,9 @@ export function ChatWidget() {
 
   const shown = [greetingFor(visitor), ...messages];
 
+  // Staff admin panel has no visitor chat.
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <>
       <AnimatePresence>
@@ -137,9 +142,9 @@ export function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="glass fixed inset-x-3 bottom-20 z-[55] flex max-h-[min(640px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-xl sm:inset-x-auto sm:right-6 sm:w-[380px]"
+            className="fixed inset-x-3 bottom-20 z-[55] border border-brand-400/30 bg-ink-900 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9),0_0_0_1px_rgb(42_109_255/0.15)] flex max-h-[min(640px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-xl sm:inset-x-auto sm:right-6 sm:w-[380px]"
           >
-            <div className="flex items-center justify-between border-b border-line px-4 py-3">
+            <div className="flex items-center justify-between border-b border-line bg-gradient-to-r from-brand-500/15 to-transparent px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-white">{brand.name} Assistant</p>
                 <p className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-subtle">
@@ -165,12 +170,12 @@ export function ChatWidget() {
                 }}
                 className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
               >
-                <p className="rounded-lg border border-line bg-ink-850/80 px-3 py-2 text-[14px] leading-relaxed text-fg/90">
+                <p className="rounded-lg border border-line bg-ink-800 px-3 py-2 text-[14px] leading-relaxed text-fg/90">
                   Hi! Before we start, please tell us how to reach you — so our team can follow up if
                   the chat gets cut off.
                 </p>
                 <label className="block space-y-1">
-                  <span className="text-[12.5px] text-muted">Name *</span>
+                  <span className="text-[12.5px] font-medium text-fg/85">Name *</span>
                   <input
                     ref={nameRef}
                     required
@@ -183,7 +188,7 @@ export function ChatWidget() {
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-[12.5px] text-muted">Email *</span>
+                  <span className="text-[12.5px] font-medium text-fg/85">Email *</span>
                   <input
                     required
                     type="email"
@@ -196,7 +201,7 @@ export function ChatWidget() {
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-[12.5px] text-muted">Telegram ID (optional)</span>
+                  <span className="text-[12.5px] font-medium text-fg/85">Telegram ID (optional)</span>
                   <input
                     maxLength={64}
                     value={form.telegram}
@@ -237,7 +242,7 @@ export function ChatWidget() {
                         "max-w-[85%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-[14px] leading-relaxed",
                         m.role === "user"
                           ? "bg-brand-500 text-white"
-                          : "border border-line bg-ink-850/80 text-fg/90",
+                          : "border border-line bg-ink-800 text-fg/90",
                       )}
                     >
                       {m.content}
@@ -262,7 +267,7 @@ export function ChatWidget() {
 
                 {pending && (
                   <div className="flex justify-start" aria-label="Assistant is typing">
-                    <span className="flex gap-1 rounded-lg border border-line bg-ink-850/80 px-3 py-3">
+                    <span className="flex gap-1 rounded-lg border border-line bg-ink-800 px-3 py-3">
                       {[0, 1, 2].map((d) => (
                         <span
                           key={d}
@@ -297,7 +302,7 @@ export function ChatWidget() {
                   }}
                   placeholder="Type your message…"
                   aria-label="Message"
-                  className="max-h-32 min-h-10 flex-1 resize-none rounded-md border border-line bg-ink-900/70 px-3 py-2 text-[14px] text-fg placeholder:text-subtle focus:border-brand-400 focus:outline-none"
+                  className="max-h-32 min-h-10 flex-1 resize-none rounded-md border border-line-strong bg-ink-950 px-3 py-2 text-[14px] text-white placeholder:text-subtle focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
                 <button
                   type="submit"

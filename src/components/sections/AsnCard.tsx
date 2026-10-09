@@ -8,7 +8,7 @@ import { asnInfo, brand } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 /** Network-operations style card summarising the ASN. */
-export function AsnCard({ className }: { className?: string }) {
+export function AsnCard({ className, showLink = true }: { className?: string; showLink?: boolean }) {
   return (
     <motion.aside
       id="asn"
@@ -52,13 +52,15 @@ export function AsnCard({ className }: { className?: string }) {
           {asnInfo.ipRanges}
         </p>
 
+        {showLink && (
         <Link
-          href="#network"
+          href="/asn-ip/"
           className="group mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-[6px] border border-brand-500/60 bg-brand-500/15 text-sm font-medium text-white transition-colors hover:bg-brand-500/30"
         >
           View ASN Details
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
+        )}
       </div>
     </motion.aside>
   );

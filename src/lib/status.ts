@@ -1,10 +1,12 @@
 /**
- * Status page content. Edit this file to update the public status page,
- * then rebuild and redeploy.
+ * Status page types and the BUILD-TIME FALLBACK content.
  *
- * Nothing here is measured automatically: the site is a static export.
- * `history` arrays are optional and should only be filled from real
- * monitoring data — days without data render as "No data".
+ * The live status is managed in the admin panel (/admin/status/) and loaded by
+ * the page from /api/site.php. The data below is only shown if that API is
+ * unavailable (e.g. `next dev`, or before the database is set up).
+ *
+ * Nothing here is measured automatically. `history` arrays are optional and
+ * should only be filled from real monitoring data — days without data render as "No data".
  */
 
 export type Status = "operational" | "degraded" | "partial_outage" | "major_outage" | "maintenance";
@@ -77,7 +79,7 @@ export type Incident = {
   components: string[];
   /** ISO timestamps */
   startedAt: string;
-  resolvedAt?: string;
+  resolvedAt?: string | null;
   updates: IncidentUpdate[];
 };
 
@@ -97,11 +99,11 @@ export const maintenance: Maintenance[] = [];
 
 const severity: Status[] = ["operational", "maintenance", "degraded", "partial_outage", "major_outage"];
 
-export function overallStatus(): Status {
-  const all = componentGroups.flatMap((g) => g.components.map((c) => c.status));
+export function overallStatus(groups: ComponentGroup[] = componentGroups): Status {
+  const all = groups.flatMap((g) => g.components.map((c) => c.status));
   return all.reduce<Status>((worst, s) => (severity.indexOf(s) > severity.indexOf(worst) ? s : worst), "operational");
 }
 
-export function findComponent(id: string) {
-  return componentGroups.flatMap((g) => g.components).find((c) => c.id === id);
+export function findComponent(id: string, groups: ComponentGroup[] = componentGroups) {
+  return groups.flatMap((g) => g.components).find((c) => c.id === id);
 }

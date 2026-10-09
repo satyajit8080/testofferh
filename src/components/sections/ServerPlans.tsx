@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { serverPlans } from "@/lib/site";
-import { ServerCard } from "./ServerCard";
+import { PlanGrid } from "./PlanGrid";
 import { LocationSelector } from "./LocationSelector";
 
 export function ServerPlans() {
@@ -26,7 +26,7 @@ export function ServerPlans() {
           />
           <Reveal delay={0.1}>
             <Link
-              href="#servers"
+              href="/dedicated-servers/"
               className="group inline-flex items-center gap-2 text-sm font-medium text-brand-400 transition-colors hover:text-glow"
             >
               View All Servers
@@ -35,11 +35,7 @@ export function ServerPlans() {
           </Reveal>
         </div>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {serverPlans.map((plan, i) => (
-            <ServerCard key={plan.id} plan={plan} index={i} />
-          ))}
-        </div>
+        <PlanGrid initial={serverPlans} />
 
         <LocationSelector />
       </Container>

@@ -8,16 +8,19 @@ import { cn } from "@/lib/cn";
 
 type Entry = { label: string; hint: string; href: string };
 
-// Homepage-only search: jumps to sections and plans on this page.
+// Jumps to homepage sections and plans; entries starting with "/" are separate pages.
 const entries: Entry[] = [
-  { label: "Dedicated Servers", hint: "Section", href: "#servers" },
-  ...serverPlans.map((p) => ({ label: p.name, hint: `€${p.price}/mo`, href: `#plan-${p.id}` })),
-  { label: `${brand.asn} — ASN & IP information`, hint: brand.rir, href: "#asn" },
-  { label: "Network & BGP routing", hint: "Section", href: "#network" },
-  { label: "DDoS Protection", hint: "Network", href: "#network" },
-  { label: "Data center locations", hint: "NL · DE · UK · US", href: "#locations" },
-  { label: "Why Offerhost", hint: "Company", href: "#why" },
-  { label: "Talk to our team", hint: "Contact", href: "#contact" },
+  { label: "Dedicated Servers", hint: "Page", href: "/dedicated-servers/" },
+  ...serverPlans.map((p) => ({ label: p.name, hint: `€${p.price}/mo`, href: `/dedicated-servers/#plan-${p.id}` })),
+  { label: `${brand.asn} — ASN & IP information`, hint: brand.rir, href: "/asn-ip/" },
+  { label: "Network & BGP routing", hint: "Page", href: "/network/" },
+  { label: "DDoS Protection", hint: "Network", href: "/network/" },
+  { label: "Data center locations", hint: "NL · DE · UK · US", href: "/data-centers/" },
+  { label: "About Offerhost", hint: "Company", href: "/about/" },
+  { label: "Client area (HostBill)", hint: "Login", href: "/clients/" },
+  { label: "Contact sales & support", hint: "Contact", href: "/contact/" },
+  { label: "Report abuse", hint: brand.asn, href: "/contact/?topic=abuse" },
+  { label: "System status", hint: "Status", href: "/status/" },
 ];
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -46,6 +49,10 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const go = (entry?: Entry) => {
     if (!entry) return;
     onClose();
+    if (entry.href.startsWith("/")) {
+      window.location.href = entry.href;
+      return;
+    }
     const target = document.querySelector(entry.href);
     // Sections live on the homepage; from other pages, navigate there instead.
     if (!target) {

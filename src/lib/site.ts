@@ -19,12 +19,23 @@ export const brand = {
 
 export type NavItem = { label: string; href: string };
 
+/**
+ * HostBill client area (customers: sign-in, sign-up, orders, invoices, servers).
+ * TODO(offerhost): confirm these URLs match your HostBill install.
+ */
+export const clientArea = {
+  home: "/clients/",
+  login: "/clients/?cmd=login",
+  register: "/clients/?cmd=signup",
+};
+
 export const mainNav: NavItem[] = [
-  { label: "Dedicated Servers", href: "/#servers" },
-  { label: "ASN & IP", href: "/#asn" },
-  { label: "Network", href: "/#network" },
-  { label: "Data Centers", href: "/#locations" },
-  { label: "Company", href: "/#why" },
+  { label: "Dedicated Servers", href: "/dedicated-servers/" },
+  { label: "ASN & IP", href: "/asn-ip/" },
+  { label: "Network", href: "/network/" },
+  { label: "Data Centers", href: "/data-centers/" },
+  { label: "Company", href: "/about/" },
+  { label: "Contact", href: "/contact/" },
 ];
 
 export const asnInfo = {
@@ -51,6 +62,8 @@ export type ServerPlan = {
   badge?: string;
   /** Location id from `locations` below */
   location: string;
+  /** Order link (e.g. HostBill cart). Without one, "Configure" opens the contact form. */
+  orderUrl?: string | null;
 };
 
 export const serverPlans: ServerPlan[] = [
@@ -138,36 +151,96 @@ export const footerColumns: { title: string; links: NavItem[] }[] = [
   {
     title: "Products",
     links: [
-      { label: "Dedicated Servers", href: "/#servers" },
-      { label: "ASN & IP", href: "/#asn" },
-      { label: "Network", href: "/#network" },
-      { label: "DDoS Protection", href: "/#network" },
+      { label: "Dedicated Servers", href: "/dedicated-servers/" },
+      { label: "ASN & IP", href: "/asn-ip/" },
+      { label: "Network", href: "/network/" },
+      { label: "DDoS Protection", href: "/network/" },
     ],
   },
   {
     title: "Infrastructure",
     links: [
-      { label: "Netherlands", href: "/#locations" },
-      { label: "Germany", href: "/#locations" },
-      { label: "United Kingdom", href: "/#locations" },
-      { label: "United States", href: "/#locations" },
+      { label: "Netherlands", href: "/data-centers/" },
+      { label: "Germany", href: "/data-centers/" },
+      { label: "United Kingdom", href: "/data-centers/" },
+      { label: "United States", href: "/data-centers/" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About Offerhost", href: "/#why" },
-      { label: "Contact", href: "/#contact" },
-      { label: "Network", href: "/#network" },
+      { label: "About Offerhost", href: "/about/" },
+      { label: "Contact", href: "/contact/" },
+      { label: "Client Area", href: "/clients/" },
       { label: "Status", href: "/status/" },
     ],
   },
   {
     title: "Network",
     links: [
-      { label: brand.asn, href: "/#asn" },
-      { label: brand.rir, href: "/#asn" },
-      { label: brand.networkTitle, href: "/#network" },
+      { label: brand.asn, href: "/asn-ip/" },
+      { label: brand.rir, href: "/asn-ip/" },
+      { label: brand.networkTitle, href: "/network/" },
     ],
+  },
+];
+
+/**
+ * Contact details shown on /contact/.
+ *
+ * TODO(offerhost): fill in the real values. Every field is a placeholder until then.
+ * Empty strings are HIDDEN on the page, so nothing fake is ever published.
+ * The address the form actually emails is set separately in `public/api/contact.php`.
+ */
+export const contact = {
+  /** Form handler, deployed from public/api/contact.php. */
+  formEndpoint: "/api/contact.php",
+  sales: {
+    email: "", // TODO e.g. sales@…
+    phone: "", // TODO optional, international format
+  },
+  support: {
+    email: "", // TODO e.g. support@…
+    /** Client area / ticket system URL, e.g. "/clients/" */
+    portalUrl: "", // TODO
+  },
+  abuse: {
+    email: "", // TODO abuse contact as registered for the ASN in the RIPE database
+    nocEmail: "", // TODO optional NOC / peering contact
+  },
+  company: {
+    legalName: "", // TODO optional
+    address: "", // TODO optional
+  },
+};
+
+export const contactTopics = [
+  { value: "sales", label: "Sales / Dedicated Servers" },
+  { value: "network", label: "ASN & IP / Network" },
+  { value: "support", label: "Technical Support" },
+  { value: "billing", label: "Billing" },
+  { value: "abuse", label: "Abuse Report" },
+  { value: "other", label: "Other" },
+] as const;
+
+export type ContactTopic = (typeof contactTopics)[number]["value"];
+
+/** FAQ on /contact/. Generic on purpose — edit freely, but don't promise SLAs here. */
+export const contactFaq = [
+  {
+    q: "How quickly can a server be deployed?",
+    a: "It depends on the configuration and current stock. Standard plans are prepared from ready hardware; custom builds take longer. We confirm the expected delivery time with you before you order.",
+  },
+  {
+    q: "Which payment methods do you accept?",
+    a: "The payment methods currently available are shown at checkout. If you need to pay in a different way, contact our billing team and we'll see what we can arrange.",
+  },
+  {
+    q: "Can I get a custom configuration?",
+    a: "Yes. Tell us the CPU, memory, storage, network and location you need and our team will put together a quote for a configuration that fits your workload.",
+  },
+  {
+    q: "Do servers come with IP addresses?",
+    a: `IPv4 and IPv6 addressing is available on our own network, ${brand.asn}. Let us know how many addresses you need; additional IPs are available on request and subject to RIPE NCC policy.`,
   },
 ];
