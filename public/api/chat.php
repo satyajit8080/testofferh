@@ -27,71 +27,15 @@ const MAX_TOOL_ROUNDS = 3;
 const RATE_LIMIT = 30;           // requests …
 const RATE_WINDOW = 600;         // … per 10 minutes per IP
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
-header('X-Content-Type-Options: nosniff');
+require __DIR__ . '/common.php';
 
-function respond(int $status, array $body): never
-{
-    http_response_code($status);
-    echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-function config(string $key, string $default = ''): string
-{
-    static $file = null;
-    if ($file === null) {
-        $path = __DIR__ . '/config.local.php';
-        $file = is_file($path) ? (array) require $path : [];
-    }
-    $env = getenv($key);
-    if ($env !== false && $env !== '') {
-        return $env;
-    }
-    return isset($file[$key]) ? (string) $file[$key] : $default;
-}
-
-// --- Request guards ---------------------------------------------------------
-
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed = array_filter(array_map('trim', explode(',', config('ALLOWED_ORIGINS'))));
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$sameOrigin = $origin === '' || parse_url($origin, PHP_URL_HOST) === $host;
-if (!$sameOrigin && !in_array($origin, $allowed, true)) {
-    respond(403, ['error' => 'Origin not allowed']);
-}
-if ($origin !== '' && !$sameOrigin) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-    header('Vary: Origin');
-}
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Methods: POST');
-    header('Access-Control-Allow-Headers: Content-Type');
-    respond(204, []);
-}
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    respond(405, ['error' => 'Method not allowed']);
-}
-
-// Simple file-based rate limit per IP.
-$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$bucket = sys_get_temp_dir() . '/offerhost-chat-' . hash('sha256', $ip);
-$now = time();
-$hits = array_filter(
-    is_file($bucket) ? (array) json_decode((string) file_get_contents($bucket), true) : [],
-    fn($t) => is_int($t) && $t > $now - RATE_WINDOW,
-);
-if (count($hits) >= RATE_LIMIT) {
-    respond(429, ['error' => 'Too many messages — please wait a few minutes or email us.']);
-}
-$hits[] = $now;
-file_put_contents($bucket, json_encode(array_values($hits)), LOCK_EX);
-
-$input = json_decode((string) file_get_contents('php://input'), true);
-if (!is_array($input) || !is_array($input['messages'] ?? null)) {
+$input = guardRequest('chat', RATE_LIMIT, RATE_WINDOW);
+if (!is_array($input['messages'] ?? null)) {
     respond(400, ['error' => 'Invalid request']);
 }
+
+// Contact details from the lead form shown before the chat starts (optional for older clients).
+[$visitor] = validateVisitor($input['visitor'] ?? null);
 
 // Keep only well-formed text turns, trimmed to a sane size, starting with a user turn.
 $messages = [];
@@ -136,9 +80,13 @@ How to behave:
 - Only state facts found in the company information below. Never invent prices, discounts, stock,
   SLAs, IP ranges, setup times or features. If you don't know, say so and offer to have the team
   follow up.
+- Visitors normally fill in a short contact form (name, email, optional Telegram ID) before
+  chatting; when they have, their details are listed after the company information. Use their
+  first name naturally and never ask again for details you already have.
 - When a visitor wants to order, get a custom quote, needs anything not listed, or asks for a human,
-  ask for their name and email (plus company and requirements if they're willing) and then call the
-  capture_lead tool. Confirm to them that the team will reply by email. Never call capture_lead
+  call the capture_lead tool with a summary of what they need (ask for company and requirements if
+  they're willing). If no contact details are on file, first ask for their name, email and Telegram
+  ID (optional). Confirm that the team will reply by email or Telegram. Never call capture_lead
   without a real email address the visitor gave you.
 - For existing-customer support issues (outages, billing, account access), point them to the status
   page at /status/ and to {$salesEmail}, and offer to pass a message to the team via capture_lead.
@@ -159,6 +107,7 @@ $tools = [
             'properties' => [
                 'name' => ['type' => 'string', 'description' => 'Visitor name'],
                 'email' => ['type' => 'string', 'description' => 'Visitor email address'],
+                'telegram' => ['type' => 'string', 'description' => 'Visitor Telegram username or ID, if given'],
                 'company' => ['type' => 'string', 'description' => 'Company, if given'],
                 'interest' => ['type' => 'string', 'description' => 'Plan or service they are interested in'],
                 'summary' => ['type' => 'string', 'description' => 'Short summary of their requirements and the conversation'],
@@ -168,33 +117,28 @@ $tools = [
     ],
 ];
 
-function captureLead(array $lead): string
+function captureLead(array $lead, ?array $visitor): string
 {
-    $email = filter_var(trim((string) ($lead['email'] ?? '')), FILTER_VALIDATE_EMAIL);
+    // Fall back to the contact form details for anything the model left out.
+    foreach (['name', 'email', 'telegram'] as $k) {
+        if (cleanLine($lead[$k] ?? '') === '' && $visitor !== null) {
+            $lead[$k] = $visitor[$k];
+        }
+    }
+    $email = filter_var(cleanLine($lead['email'] ?? '', 254), FILTER_VALIDATE_EMAIL);
     if ($email === false) {
         return 'ERROR: that email address looks invalid. Ask the visitor to double-check it.';
     }
-    $clean = fn(string $k) => trim(str_replace(["\r", "\n"], ' ', mb_substr((string) ($lead[$k] ?? ''), 0, 200)));
-    $body = implode("\n", [
-        'New lead from the website chat assistant',
-        '',
-        'Name:     ' . $clean('name'),
-        'Email:    ' . $email,
-        'Company:  ' . $clean('company'),
-        'Interest: ' . $clean('interest'),
-        '',
-        'Summary:',
-        mb_substr((string) ($lead['summary'] ?? ''), 0, 4000),
-        '',
-        'IP: ' . ($_SERVER['REMOTE_ADDR'] ?? '') . ' · ' . gmdate('Y-m-d H:i') . ' UTC',
-    ]);
-    $headers = 'From: ' . config('MAIL_FROM', 'no-reply@offerhost.com') . "\r\n"
-        . 'Reply-To: ' . $email . "\r\n"
-        . "Content-Type: text/plain; charset=UTF-8\r\n";
-    $subject = 'Chat lead: ' . ($clean('interest') ?: $clean('name') ?: $email);
-
-    if (!mail(config('SALES_EMAIL', 'sales@offerhost.com'), $subject, $body, $headers)) {
-        error_log('offerhost-chat: mail() failed for lead ' . $email);
+    $telegram = normalizeTelegram($lead['telegram'] ?? '') ?? cleanLine($lead['telegram'] ?? '', 64);
+    $subject = 'Chat lead: ' . (cleanLine($lead['interest'] ?? '') ?: cleanLine($lead['name'] ?? '') ?: $email);
+    $sent = sendLead($subject, [
+        'Name' => cleanLine($lead['name'] ?? ''),
+        'Email' => $email,
+        'Telegram' => $telegram ?: '—',
+        'Company' => cleanLine($lead['company'] ?? ''),
+        'Interest' => cleanLine($lead['interest'] ?? ''),
+    ], "Summary:\n" . mb_substr(is_string($lead['summary'] ?? null) ? $lead['summary'] : '', 0, 4000));
+    if (!$sent) {
         return 'ERROR: the message could not be delivered. Ask the visitor to email '
             . config('SALES_EMAIL', 'sales@offerhost.com') . ' directly.';
     }
@@ -202,6 +146,13 @@ function captureLead(array $lead): string
 }
 
 // --- Conversation -----------------------------------------------------------
+
+// Per-visitor details go after the cached block so they don't break the cache.
+$systemBlocks = [['type' => 'text', 'text' => $system, 'cacheControl' => ['type' => 'ephemeral']]];
+if ($visitor !== null) {
+    $systemBlocks[] = ['type' => 'text', 'text' => "Visitor contact details (from the chat form):\n"
+        . json_encode($visitor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)];
+}
 
 $client = new Client(apiKey: $apiKey);
 $fallbackReply = "Sorry, I can't help with that here. Please email {$salesEmail} and our team will get back to you.";
@@ -213,7 +164,7 @@ try {
             model: MODEL,
             maxTokens: 8000,
             outputConfig: ['effort' => 'low'],
-            system: [['type' => 'text', 'text' => $system, 'cacheControl' => ['type' => 'ephemeral']]],
+            system: $systemBlocks,
             tools: $tools,
             messages: $messages,
         );
@@ -229,7 +180,7 @@ try {
         foreach ($response->content as $block) {
             if ($block instanceof ToolUseBlock) {
                 $out = $block->name === 'capture_lead'
-                    ? captureLead((array) $block->input)
+                    ? captureLead((array) $block->input, $visitor)
                     : 'ERROR: unknown tool';
                 $leadCaptured = $leadCaptured || !str_starts_with($out, 'ERROR');
                 $results[] = [

@@ -31,6 +31,12 @@ static, the backend is a small PHP endpoint that ships with the build: `public/a
 `/api/chat.php`. Plan names, specs and prices come from `src/lib/site.ts`, exported at build time to
 `/api/chat-knowledge.json`, so the assistant always quotes what the website shows.
 
+Opening the chat first shows a short lead form — **name**, **email** and optional **Telegram ID**.
+`public/api/lead.php` validates it and emails the lead to `SALES_EMAIL` straight away, so a contact
+is captured even if the visitor never sends a message. The details are remembered in the browser
+(`localStorage`) and sent with each chat request, so the assistant greets the visitor by name and
+includes their email and Telegram in any follow-up lead it sends.
+
 Server setup (once, PHP 8.1+):
 
 1. In `public_html/api/`, run `composer install --no-dev` (cPanel Terminal), or run it locally in

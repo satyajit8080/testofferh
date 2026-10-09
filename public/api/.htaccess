@@ -1,7 +1,7 @@
-# Only chat.php and the generated knowledge file are public.
+# Only chat.php, lead.php and the generated knowledge file are public.
 Options -Indexes
 
-<FilesMatch "^(config\.local\.php|composer\.(json|lock))$">
+<FilesMatch "^(config\.local\.php|common\.php|composer\.(json|lock))$">
   Require all denied
 </FilesMatch>
 
