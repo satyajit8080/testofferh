@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { animate, motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check, Cpu, HardDrive, MapPin, MemoryStick, Network } from "lucide-react";
+import { Check, Clock, Cpu, HardDrive, MapPin, MemoryStick, Network } from "lucide-react";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { Tbc } from "@/components/ui/Tbc";
 import { Flag } from "@/components/ui/Flag";
 import { RackGlyph } from "@/components/visuals/FeatureGlyphs";
-import { locations, type ServerPlan } from "@/lib/site";
+import { locations } from "@/lib/site";
+import { stockLabel, vatSuffix, type ResolvedPlan } from "@/lib/plans";
 import { cn } from "@/lib/cn";
 
 const specIcon = (spec: string) => {
@@ -47,7 +49,7 @@ const beam: React.CSSProperties = {
     "conic-gradient(from 0deg, transparent 0%, transparent 62%, var(--color-brand-500) 76%, var(--color-glow) 86%, transparent 94%)",
 };
 
-export function ServerCard({ plan, index }: { plan: ServerPlan; index: number }) {
+export function ServerCard({ plan, index }: { plan: ResolvedPlan; index: number }) {
   const featured = plan.featured;
   const reduce = useReducedMotion();
   const loc = locations.find((l) => l.id === plan.location);
@@ -160,31 +162,43 @@ export function ServerCard({ plan, index }: { plan: ServerPlan; index: number })
           })}
         </motion.ul>
 
-        <div className="relative mt-auto pt-7">
-          <p className="flex items-baseline gap-1.5">
-            <span className="text-[34px] font-semibold tracking-tight text-white">
-              <PriceCounter value={plan.price} />
+        <div className="relative mt-5 flex flex-wrap items-center gap-2 text-[11.5px]">
+          {plan.stock ? (
+            <span className={cn("rounded-[4px] border px-2 py-0.5 font-mono tracking-wide", stockLabel[plan.stock].tone)}>
+              {stockLabel[plan.stock].label}
             </span>
-            <span className="text-[13px] text-muted">/ month</span>
-          </p>
-          <Link
-            href="/#contact"
-            aria-label={`Configure ${plan.name}`}
-            className={cn(
-              "relative mt-5 flex h-11 items-center justify-center gap-2 overflow-hidden rounded-[6px] text-sm font-medium transition-colors",
-              featured
-                ? "bg-brand-500 text-white hover:bg-brand-400"
-                : "border border-line-strong text-fg hover:border-brand-400/70 hover:bg-brand-500/10",
+          ) : (
+            <Tbc label="Stock" />
+          )}
+          <span className="flex items-center gap-1 text-muted">
+            <Clock className="h-3.5 w-3.5" />
+            {plan.delivery ?? <Tbc label="Delivery time" />}
+          </span>
+        </div>
+
+        <div className="relative mt-auto pt-6">
+          <p className="flex items-baseline gap-1.5">
+            {plan.price === null ? (
+              <span className="text-[22px] font-semibold tracking-tight text-white">Price on request</span>
+            ) : (
+              <>
+                <span className="text-[34px] font-semibold tracking-tight text-white">
+                  <PriceCounter value={plan.price} />
+                </span>
+                <span className="text-[13px] text-muted">/ month {vatSuffix(plan.pricesIncludeVat)}</span>
+              </>
             )}
-          >
-            {/* Light sweep on hover */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[420%]"
-            />
-            Configure
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </p>
+          <p className="mt-1 text-[12px] text-subtle">
+            Setup: {plan.setupFee === null ? <Tbc /> : plan.setupFee === 0 ? "free" : `€${plan.setupFee}`}
+          </p>
+          <AddToCartButton
+            planId={plan.id}
+            planName={plan.name}
+            orderable={plan.orderable}
+            featured={featured}
+            className="mt-4"
+          />
         </div>
       </div>
     </motion.article>

@@ -19,9 +19,24 @@ npm run dev
 
 | What | File |
 | --- | --- |
+| **Business facts** — company/imprint, contacts, DDoS numbers, SLA, fees, VAT, stock, delivery, extras, IP prices, testimonials | `src/lib/facts.ts` |
 | Brand, ASN, navigation, server plans, locations, footer | `src/lib/site.ts` |
+| Use-case pages and knowledge base | `src/lib/content.ts` |
+| FAQ | `src/lib/faq.ts` |
 | Status page components, incidents, maintenance | `src/lib/status.ts` |
 | Page sections | `src/components/` |
+
+## Facts before publishing
+
+Every value in `src/lib/facts.ts` is either confirmed in writing or `null`. A `null` shows on the
+site as an amber **To confirm** marker. List what is still missing with:
+
+```bash
+npm run facts   # exits 1 while anything is unconfirmed
+```
+
+Legal pages show a "Draft" banner until `legal.draft` is set to `false` after legal review.
+Customer quotes appear on the homepage only once added to `testimonials` (with permission).
 
 ## Build & deploy (cPanel)
 

@@ -53,7 +53,7 @@ export function AsnCard({ className }: { className?: string }) {
         </p>
 
         <Link
-          href="#network"
+          href="/network/"
           className="group mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-[6px] border border-brand-500/60 bg-brand-500/15 text-sm font-medium text-white transition-colors hover:bg-brand-500/30"
         >
           View ASN Details

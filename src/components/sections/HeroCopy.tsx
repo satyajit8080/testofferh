@@ -50,7 +50,7 @@ export function HeroCopy() {
         <Button href="#servers" size="lg" arrow className="w-full sm:w-auto">
           View Dedicated Servers
         </Button>
-        <Button href="#network" size="lg" variant="secondary" className="w-full sm:w-auto">
+        <Button href="/network/" size="lg" variant="secondary" className="w-full sm:w-auto">
           Explore Our Network
         </Button>
       </motion.div>

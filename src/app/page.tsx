@@ -6,8 +6,10 @@ import { Hero } from "@/components/sections/Hero";
 import { NetworkSection } from "@/components/sections/NetworkSection";
 import { NetworkStats } from "@/components/sections/NetworkStats";
 import { ServerPlans } from "@/components/sections/ServerPlans";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { WhyOfferhost } from "@/components/sections/WhyOfferhost";
 import { brand } from "@/lib/site";
+import { company, contact } from "@/lib/facts";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -16,6 +18,10 @@ const jsonLd = {
   description:
     "High-performance dedicated servers, premium network infrastructure and global connectivity powered by Offerhost AS208220.",
   slogan: brand.description,
+  ...(company.legalName && { legalName: company.legalName }),
+  ...(company.vatId && { vatID: company.vatId }),
+  ...(contact.supportEmail && { email: contact.supportEmail }),
+  sameAs: ["https://bgp.tools/as/208220"],
 };
 
 export default function HomePage() {
@@ -35,6 +41,7 @@ export default function HomePage() {
         <NetworkSection />
         <WhyOfferhost />
         <NetworkStats />
+        <Testimonials />
         <FinalCta />
       </main>
       <Footer />

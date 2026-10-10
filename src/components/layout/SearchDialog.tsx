@@ -4,20 +4,31 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Search } from "lucide-react";
 import { brand, serverPlans } from "@/lib/site";
+import { articles, useCases } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 type Entry = { label: string; hint: string; href: string };
 
-// Homepage-only search: jumps to sections and plans on this page.
+// Site search over pages, plans, use cases and guides. "#" entries are homepage sections.
 const entries: Entry[] = [
-  { label: "Dedicated Servers", hint: "Section", href: "#servers" },
-  ...serverPlans.map((p) => ({ label: p.name, hint: `€${p.price}/mo`, href: `#plan-${p.id}` })),
-  { label: `${brand.asn} — ASN & IP information`, hint: brand.rir, href: "#asn" },
-  { label: "Network & BGP routing", hint: "Section", href: "#network" },
-  { label: "DDoS Protection", hint: "Network", href: "#network" },
+  { label: "Dedicated Servers — full specs", hint: "Servers", href: "/servers/" },
+  ...serverPlans.map((p) => ({ label: p.name, hint: p.price === null ? "Price on request" : `€${p.price}/mo`, href: `/servers/#plan-${p.id}` })),
+  { label: "Cart", hint: "Order", href: "/cart/" },
+  { label: "DDoS Protection", hint: "Network", href: "/ddos/" },
+  { label: `${brand.asn} — network, bgp.tools & looking glass`, hint: brand.rir, href: "/network/" },
+  { label: "System status & incident history", hint: "Status", href: "/status/" },
+  { label: "Features, add-ons & extra IP pricing", hint: "Features", href: "/features/" },
+  { label: "Support, contact & FAQ", hint: "Support", href: "/support/" },
+  { label: "Amsterdam data centre", hint: "Location", href: "/locations/amsterdam/" },
+  ...useCases.map((u) => ({ label: u.title, hint: "Use case", href: `/use-cases/${u.slug}/` })),
+  ...articles.map((a) => ({ label: a.title, hint: "Guide", href: `/kb/${a.slug}/` })),
+  { label: "Service Level Agreement", hint: "Legal", href: "/legal/sla/" },
+  { label: "Terms of Service", hint: "Legal", href: "/legal/terms/" },
+  { label: "Privacy Policy", hint: "Legal", href: "/legal/privacy/" },
+  { label: "Acceptable Use Policy & abuse", hint: "Legal", href: "/legal/aup/" },
+  { label: "Refunds & cancellation", hint: "Legal", href: "/legal/refunds/" },
+  { label: "Imprint — company details", hint: "Legal", href: "/legal/imprint/" },
   { label: "Data center locations", hint: "NL · DE · UK · US", href: "#locations" },
-  { label: "Why Offerhost", hint: "Company", href: "#why" },
-  { label: "Talk to our team", hint: "Contact", href: "#contact" },
 ];
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -46,6 +57,10 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const go = (entry?: Entry) => {
     if (!entry) return;
     onClose();
+    if (!entry.href.startsWith("#")) {
+      window.location.href = entry.href;
+      return;
+    }
     const target = document.querySelector(entry.href);
     // Sections live on the homepage; from other pages, navigate there instead.
     if (!target) {

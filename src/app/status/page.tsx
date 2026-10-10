@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, LifeBuoy } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BellRing, LifeBuoy, Rss } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ComponentGroupCard } from "@/components/status/ComponentGroupCard";
@@ -9,6 +9,7 @@ import { StatusHero } from "@/components/status/StatusHero";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { componentGroups, statusMeta, type Status } from "@/lib/status";
+import { proof } from "@/lib/facts";
 
 const title = "System Status | Offerhost AS208220";
 const description =
@@ -17,9 +18,9 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/status/" },
   openGraph: { title, description, url: "/status/" },
   twitter: { title, description },
+  alternates: { canonical: "/status/", types: { "application/rss+xml": "/status/feed.xml" } },
 };
 
 // Build time (UTC) — the page is static, so this is when the status was last published.
@@ -65,6 +66,46 @@ export default function StatusPage() {
             </div>
 
             <aside className="space-y-10 lg:sticky lg:top-32 lg:self-start">
+              <Reveal className="glass ticks rounded-[10px] p-6">
+                <BellRing className="h-6 w-6 text-brand-400" strokeWidth={1.5} />
+                <h2 className="mt-4 text-base font-semibold text-white">Subscribe to updates</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Get every incident and maintenance notice as it is published.
+                </p>
+                <div className="mt-5 grid gap-2">
+                  <a
+                    href="/status/feed.xml"
+                    className="flex h-10 items-center justify-center gap-2 rounded-[6px] border border-line-strong text-sm text-fg transition-colors hover:border-brand-400/60"
+                  >
+                    <Rss className="h-4 w-4" /> RSS feed
+                  </a>
+                  {proof.statusSubscribeUrl && (
+                    <a
+                      href={proof.statusSubscribeUrl}
+                      className="flex h-10 items-center justify-center gap-2 rounded-[6px] bg-brand-500 text-sm font-medium text-white transition-colors hover:bg-brand-400"
+                    >
+                      <BellRing className="h-4 w-4" /> Email updates
+                    </a>
+                  )}
+                </div>
+                <ul className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
+                  {[
+                    { href: proof.lookingGlass, label: "Looking glass" },
+                    { href: proof.bgpTools, label: "AS208220 on bgp.tools" },
+                  ].map((l) => (
+                    <li key={l.href}>
+                      <a href={l.href} target="_blank" rel="noopener" className="flex items-center justify-between text-fg/85 hover:text-white">
+                        {l.label} <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  ))}
+                  <li>
+                    <Link href="/legal/sla/" className="flex items-center justify-between text-fg/85 hover:text-white">
+                      SLA & service credits <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </li>
+                </ul>
+              </Reveal>
               <MaintenanceList />
               <IncidentList />
               <Reveal className="glass ticks rounded-[10px] p-6">
@@ -74,7 +115,7 @@ export default function StatusPage() {
                   If something isn&apos;t working and it&apos;s not listed here, our infrastructure team can help.
                 </p>
                 <Link
-                  href="/#contact"
+                  href="/support/"
                   className="group mt-5 flex h-10 items-center justify-center gap-2 rounded-[6px] bg-brand-500 text-sm font-medium text-white transition-colors hover:bg-brand-400"
                 >
                   Contact Support

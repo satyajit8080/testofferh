@@ -20,11 +20,11 @@ export const brand = {
 export type NavItem = { label: string; href: string };
 
 export const mainNav: NavItem[] = [
-  { label: "Dedicated Servers", href: "/#servers" },
-  { label: "ASN & IP", href: "/#asn" },
-  { label: "Network", href: "/#network" },
-  { label: "Data Centers", href: "/#locations" },
-  { label: "Company", href: "/#why" },
+  { label: "Dedicated Servers", href: "/servers/" },
+  { label: "DDoS Protection", href: "/ddos/" },
+  { label: "Network", href: "/network/" },
+  { label: "Features", href: "/features/" },
+  { label: "Support", href: "/support/" },
 ];
 
 export const asnInfo = {
@@ -46,11 +46,19 @@ export type ServerPlan = {
   name: string;
   summary: string;
   specs: string[];
-  price: number;
+  /** Monthly price in EUR; `null` = not priced yet ("Price on request"). */
+  price: number | null;
   featured?: boolean;
   badge?: string;
   /** Location id from `locations` below */
   location: string;
+  /** Public manufacturer specs — safe to state. */
+  cpu: { model: string; generation: string; cores: number; threads: number; clock: string };
+  ram: string;
+  storage: string;
+  port: string;
+  /** Range grouping on /servers/. */
+  range: "ryzen" | "10g" | "storage";
 };
 
 export const serverPlans: ServerPlan[] = [
@@ -61,6 +69,11 @@ export const serverPlans: ServerPlan[] = [
     specs: ["AMD Ryzen 5 3600", "128 GB DDR4", "2 × 1 TB NVMe", "1 Gbps IN / Unmetered OUT"],
     price: 90,
     location: "nl",
+    cpu: { model: "AMD Ryzen 5 3600", generation: "Zen 2 (2019)", cores: 6, threads: 12, clock: "3.6 / 4.2 GHz" },
+    ram: "128 GB DDR4",
+    storage: "2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "ryzen",
   },
   {
     id: "ryzen-7-3700x",
@@ -69,6 +82,11 @@ export const serverPlans: ServerPlan[] = [
     specs: ["AMD Ryzen 7 3700X", "128 GB DDR4", "2 × 1 TB NVMe", "1 Gbps IN / Unmetered OUT"],
     price: 100,
     location: "nl",
+    cpu: { model: "AMD Ryzen 7 3700X", generation: "Zen 2 (2019)", cores: 8, threads: 16, clock: "3.6 / 4.4 GHz" },
+    ram: "128 GB DDR4",
+    storage: "2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "ryzen",
   },
   {
     id: "ryzen-9-5950x",
@@ -79,6 +97,11 @@ export const serverPlans: ServerPlan[] = [
     featured: true,
     badge: "MOST POPULAR",
     location: "nl",
+    cpu: { model: "AMD Ryzen 9 5950X", generation: "Zen 3 (2020)", cores: 16, threads: 32, clock: "3.4 / 4.9 GHz" },
+    ram: "128 GB DDR4",
+    storage: "2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "ryzen",
   },
   {
     id: "ryzen-9-7950x",
@@ -87,8 +110,56 @@ export const serverPlans: ServerPlan[] = [
     specs: ["AMD Ryzen 9 7950X", "192 GB DDR5", "2 × 1 TB NVMe", "1 Gbps IN / Unmetered OUT"],
     price: 200,
     location: "nl",
+    cpu: { model: "AMD Ryzen 9 7950X", generation: "Zen 4 (2022)", cores: 16, threads: 32, clock: "4.5 / 5.7 GHz" },
+    ram: "192 GB DDR5",
+    storage: "2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "ryzen",
+  },
+  // Range additions — proposed configurations; price and stock live in facts.ts.
+  {
+    id: "ryzen-7-9700x",
+    name: "Ryzen 7 9700X",
+    summary: "Zen 5 mid-tier with DDR5",
+    specs: ["AMD Ryzen 7 9700X", "64 GB DDR5", "2 × 1 TB NVMe", "1 Gbps port"],
+    price: null,
+    location: "nl",
+    cpu: { model: "AMD Ryzen 7 9700X", generation: "Zen 5 (2024)", cores: 8, threads: 16, clock: "3.8 / 5.5 GHz" },
+    ram: "64 GB DDR5",
+    storage: "2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "ryzen",
+  },
+  {
+    id: "ryzen-9-7950x-10g",
+    name: "Ryzen 9 7950X · 10G",
+    summary: "16 cores on a 10 Gbps port",
+    specs: ["AMD Ryzen 9 7950X", "192 GB DDR5", "2 × 2 TB NVMe", "10 Gbps port"],
+    price: null,
+    location: "nl",
+    cpu: { model: "AMD Ryzen 9 7950X", generation: "Zen 4 (2022)", cores: 16, threads: 32, clock: "4.5 / 5.7 GHz" },
+    ram: "192 GB DDR5",
+    storage: "2 × 2 TB NVMe",
+    port: "10 Gbps",
+    range: "10g",
+  },
+  {
+    id: "storage-4x16tb",
+    name: "Storage 64 TB",
+    summary: "Bulk storage for backups and media",
+    specs: ["AMD Ryzen 7 3700X", "64 GB DDR4", "4 × 16 TB HDD + 2 × 1 TB NVMe", "1 Gbps port"],
+    price: null,
+    location: "nl",
+    cpu: { model: "AMD Ryzen 7 3700X", generation: "Zen 2 (2019)", cores: 8, threads: 16, clock: "3.6 / 4.4 GHz" },
+    ram: "64 GB DDR4",
+    storage: "4 × 16 TB HDD + 2 × 1 TB NVMe",
+    port: "1 Gbps",
+    range: "storage",
   },
 ];
+
+/** Plans shown on the homepage. */
+export const featuredPlans = serverPlans.filter((p) => p.range === "ryzen" && p.price !== null);
 
 export type Location = {
   id: string;
@@ -138,36 +209,49 @@ export const footerColumns: { title: string; links: NavItem[] }[] = [
   {
     title: "Products",
     links: [
-      { label: "Dedicated Servers", href: "/#servers" },
-      { label: "ASN & IP", href: "/#asn" },
-      { label: "Network", href: "/#network" },
-      { label: "DDoS Protection", href: "/#network" },
+      { label: "Dedicated Servers", href: "/servers/" },
+      { label: "DDoS Protection", href: "/ddos/" },
+      { label: "Features & Add-ons", href: "/features/" },
+      { label: "Extra IPs", href: "/features/#ip-pricing" },
+      { label: "Amsterdam", href: "/locations/amsterdam/" },
     ],
   },
   {
-    title: "Infrastructure",
+    title: "Use Cases",
     links: [
-      { label: "Netherlands", href: "/#locations" },
-      { label: "Germany", href: "/#locations" },
-      { label: "United Kingdom", href: "/#locations" },
-      { label: "United States", href: "/#locations" },
+      { label: "Proxmox", href: "/use-cases/proxmox/" },
+      { label: "Web Hosting", href: "/use-cases/web-hosting/" },
+      { label: "Game Servers", href: "/use-cases/game-servers/" },
+      { label: "Streaming", href: "/use-cases/streaming/" },
+      { label: "Blockchain Nodes", href: "/use-cases/nodes/" },
     ],
   },
   {
-    title: "Company",
+    title: "Network & Proof",
     links: [
-      { label: "About Offerhost", href: "/#why" },
-      { label: "Contact", href: "/#contact" },
-      { label: "Network", href: "/#network" },
-      { label: "Status", href: "/status/" },
+      { label: "Network & Looking Glass", href: "/network/" },
+      { label: "System Status", href: "/status/" },
+      { label: "Service Level Agreement", href: "/legal/sla/" },
+      { label: `${brand.asn} on bgp.tools`, href: "https://bgp.tools/as/208220" },
     ],
   },
   {
-    title: "Network",
+    title: "Support",
     links: [
-      { label: brand.asn, href: "/#asn" },
-      { label: brand.rir, href: "/#asn" },
-      { label: brand.networkTitle, href: "/#network" },
+      { label: "Contact & Support", href: "/support/" },
+      { label: "FAQ", href: "/support/#faq" },
+      { label: "Knowledge Base", href: "/kb/" },
+      { label: "Report Abuse", href: "/legal/aup/#abuse" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Terms of Service", href: "/legal/terms/" },
+      { label: "Privacy Policy", href: "/legal/privacy/" },
+      { label: "Acceptable Use", href: "/legal/aup/" },
+      { label: "Refunds & Cancellation", href: "/legal/refunds/" },
+      { label: "Imprint", href: "/legal/imprint/" },
     ],
   },
 ];

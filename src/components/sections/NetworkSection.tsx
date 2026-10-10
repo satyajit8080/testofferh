@@ -1,4 +1,5 @@
-import { GitFork, Network, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, GitFork, Network, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -6,12 +7,13 @@ import { DotMap } from "@/components/visuals/DotMap";
 import { NetworkOverlay } from "@/components/visuals/NetworkOverlay";
 import { buildDottedMap } from "@/lib/maps";
 import { brand, networkLinks, networkNodes } from "@/lib/site";
+import { proof } from "@/lib/facts";
 
-const capabilities: { icon: LucideIcon; title: string; body: string }[] = [
-  { icon: GitFork, title: "BGP Routing", body: "Intelligent routing across multiple network paths." },
+const capabilities: { icon: LucideIcon; title: string; body: string; href?: string }[] = [
+  { icon: GitFork, title: "BGP Routing", body: "Intelligent routing across multiple network paths.", href: "/network/" },
   { icon: Workflow, title: "Premium Transit", body: "High-quality upstream connectivity." },
   { icon: Network, title: "IP Infrastructure", body: "Reliable IPv4 and IPv6 infrastructure." },
-  { icon: ShieldCheck, title: "DDoS Protection", body: "Network protection for critical workloads." },
+  { icon: ShieldCheck, title: "DDoS Protection", body: "What is filtered, by whom, and when an IP is null-routed.", href: "/ddos/" },
 ];
 
 const anchors: Record<string, "left" | "right" | "top" | "bottom"> = {
@@ -91,14 +93,37 @@ export function NetworkSection() {
         <ul className="mt-12 grid gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {capabilities.map((c, i) => (
             <li key={c.title} className="bg-ink-900">
-              <Reveal delay={i * 0.06} className="group h-full p-6 transition-colors hover:bg-ink-850">
+              <Reveal delay={i * 0.06} className="group relative h-full p-6 transition-colors hover:bg-ink-850">
                 <c.icon className="h-5 w-5 text-brand-400 transition-colors group-hover:text-glow" strokeWidth={1.6} />
-                <h3 className="mt-4 text-[15px] font-semibold text-fg">{c.title}</h3>
+                <h3 className="mt-4 text-[15px] font-semibold text-fg">
+                  {c.href ? (
+                    <Link href={c.href} className="after:absolute after:inset-0 hover:text-white">
+                      {c.title} →
+                    </Link>
+                  ) : (
+                    c.title
+                  )}
+                </h3>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{c.body}</p>
               </Reveal>
             </li>
           ))}
         </ul>
+
+        <p className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted">
+          <span className="font-mono text-[11px] tracking-[0.2em] text-subtle">VERIFY {brand.asn}</span>
+          {[
+            { href: proof.bgpTools, label: "bgp.tools" },
+            { href: proof.lookingGlass, label: "Looking glass" },
+            { href: proof.ripestat, label: "RIPEstat" },
+          ].map((l) => (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-fg/85 hover:text-white">
+              {l.label} <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          ))}
+          <Link href="/status/" className="text-fg/85 hover:text-white">Status history</Link>
+          <Link href="/legal/sla/" className="text-fg/85 hover:text-white">SLA</Link>
+        </p>
       </Container>
     </section>
   );

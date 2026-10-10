@@ -1,6 +1,7 @@
 import { CalendarClock, CheckCircle2, History } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { findComponent, incidents, maintenance } from "@/lib/status";
+import { proof } from "@/lib/facts";
 import { StatusPill } from "./StatusPill";
 
 const fmt = new Intl.DateTimeFormat("en-GB", {
@@ -12,6 +13,8 @@ const fmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "UTC",
   timeZoneName: "short",
 });
+
+const fmtDay = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 const names = (ids: string[]) => ids.map((id) => findComponent(id)?.name ?? id).join(", ");
 
@@ -36,7 +39,7 @@ export function MaintenanceList() {
           <Empty icon={CheckCircle2} text="No maintenance is currently scheduled." />
         ) : (
           maintenance.map((m) => (
-            <article key={m.id} className="rounded-[10px] border border-brand-400/30 bg-brand-500/[0.06] p-5">
+            <article key={m.id} id={m.id} className="scroll-mt-32 rounded-[10px] border border-brand-400/30 bg-brand-500/[0.06] p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="font-medium text-fg">{m.title}</h3>
                 <StatusPill status="maintenance" />
@@ -64,10 +67,17 @@ export function IncidentList() {
       </h2>
       <div className="mt-4 space-y-3">
         {sorted.length === 0 ? (
-          <Empty icon={CheckCircle2} text="No incidents have been reported." />
+          <Empty
+            icon={CheckCircle2}
+            text={
+              proof.statusHistorySince
+                ? `No incidents have been reported since ${fmtDay.format(new Date(proof.statusHistorySince))}.`
+                : "No incidents have been reported."
+            }
+          />
         ) : (
           sorted.map((inc) => (
-            <article key={inc.id} className="rounded-[10px] border border-line bg-ink-900/70 p-5">
+            <article key={inc.id} id={inc.id} className="scroll-mt-32 rounded-[10px] border border-line bg-ink-900/70 p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="font-medium text-fg">{inc.title}</h3>
                 <StatusPill status={inc.resolvedAt ? "operational" : inc.impact} />

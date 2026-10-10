@@ -8,6 +8,8 @@ import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { SearchDialog } from "@/components/layout/SearchDialog";
+import { CartLink } from "@/components/cart/CartLink";
+import { contact } from "@/lib/facts";
 import { brand, mainNav } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -66,6 +68,9 @@ export function Header() {
             </span>
             <span className="flex items-center gap-4">
               <span className="hidden md:inline">Amsterdam · Frankfurt · London · New York</span>
+              <a href="https://lg.offerhost.com" className="text-fg/70 transition-colors hover:text-white">
+                Looking Glass
+              </a>
               <Link href="/status/" className="text-fg/70 transition-colors hover:text-white">
                 System Status →
               </Link>
@@ -100,14 +105,17 @@ export function Header() {
             >
               <Search className="h-[18px] w-[18px]" />
             </button>
-            <Link
-              href="#"
-              className="hidden px-3 text-[14px] text-fg/80 transition-colors hover:text-white sm:inline"
-            >
-              Login
-            </Link>
+            <CartLink />
+            {contact.clientAreaUrl && (
+              <a
+                href={contact.clientAreaUrl}
+                className="hidden px-3 text-[14px] text-fg/80 transition-colors hover:text-white sm:inline"
+              >
+                Login
+              </a>
+            )}
             <span className="hidden sm:inline-flex">
-              <Button href="/#servers" size="sm">
+              <Button href="/servers/" size="sm">
                 Get Started
               </Button>
             </span>
@@ -153,10 +161,10 @@ export function Header() {
                   </motion.div>
                 ))}
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Button href="/#" variant="secondary" onClick={() => setMenuOpen(false)}>
-                    Login
+                  <Button href={contact.clientAreaUrl ?? "/support/"} variant="secondary" onClick={() => setMenuOpen(false)}>
+                    {contact.clientAreaUrl ? "Login" : "Support"}
                   </Button>
-                  <Button href="/#servers" onClick={() => setMenuOpen(false)}>
+                  <Button href="/servers/" onClick={() => setMenuOpen(false)}>
                     Get Started
                   </Button>
                 </div>
